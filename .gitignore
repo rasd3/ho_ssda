@@ -1,0 +1,27 @@
+**__pycache__**
+**build**
+**egg-info**
+*.pyc
+venv/
+*.idea/
+*.so
+*.pth
+*.zip
+*.pkl
+*.bin
+work_dirs/
+output/
+demo/
+model_zoo/
+model_demo/
+gt_database*
+data
+
+# for ImageSets
+data/*
+!data/omega
+data/omega/*
+!data/omega/v0.5-omega-trainval
+data/omega/v0.5-omega-trainval/*
+!data/omega/v0.5-omega-trainval/ImageSets
+!data/omega/v0.5-omega-trainval/data_split.py
