@@ -13,7 +13,7 @@ from pcdet.datasets import *
 class DADatasetCO(torch_data.Dataset):
     """
     """
-    def __init__(self, dataset_cfg, training=True, root_path=None, logger=None):
+    def __init__(self, dataset_cfg, class_names=None, training=True, root_path=None, logger=None):
         self.dataset_cfg = dataset_cfg
         self.training = training
         self.logger = logger
@@ -38,6 +38,8 @@ class DADatasetCO(torch_data.Dataset):
 
         self.src_index = [False for _ in range(len(self.src_dataset))]
 
+        self.tl_prob = dataset_cfg.get('TL_PROB', 0.0)
+
     def __len__(self):
         if self.training:
             return len(self.trg_dataset) + len(self.src_dataset)
@@ -56,14 +58,19 @@ class DADatasetCO(torch_data.Dataset):
         return idx
 
     def __getitem__(self, index):
-
         if self.training:
-            if index < len(self.src_dataset):
-                item = self.src_dataset.__getitem__(index)
-                item['domain'] = 0
-            else:
-                item = self.trg_dataset.__getitem__(index)
+            prob = np.random.random(1)
+            if prob < self.tl_prob:
+                idx_tl = np.random.randint(len(self.trg_dataset))
+                item = self.trg_dataset.__getitem__(idx_tl)
                 item['domain'] = 1
+            else:
+                if index < len(self.src_dataset):
+                    item = self.src_dataset.__getitem__(index)
+                    item['domain'] = 0
+                else:
+                    item = self.trg_dataset.__getitem__(index)
+                    item['domain'] = 1
             return item
         else:
             item = self.trg_dataset.__getitem__(index)
