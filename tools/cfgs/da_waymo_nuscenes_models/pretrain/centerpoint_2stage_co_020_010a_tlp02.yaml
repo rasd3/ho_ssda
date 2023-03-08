@@ -5,7 +5,14 @@ DATA_CONFIG:
 
     POINT_CLOUD_RANGE: [-54.0, -54.0, -5.0, 54.0, 54.0, 4.8]
     TL_PROB: 0.2
+    SRC_DATASET: 
+        SAMPLED_INTERVAL: {
+            'train': 5,
+            'test': 1
+        }
     TRG_DATASET:
+        MAX_SWEEPS: 1
+        BALANCED_RESAMPLING: False
         INFO_PATH: {
             'train': [top_10_frames_nuscenes_infos_10sweeps_withvelo.pkl],
             'test': [nuscenes_infos_10sweeps_val_train_0.05_1.pkl],

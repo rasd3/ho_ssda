@@ -10,7 +10,7 @@ DATA_CONFIG:
     POINT_CLOUD_RANGE: [-54.0, -54.0, -5.0, 54.0, 54.0, 4.8]
 
     PRED_VELOCITY: False
-    BALANCED_RESAMPLING: True #False
+    BALANCED_RESAMPLING: False
     RETAIN_GRAPH: True
 
     SRC_DATASET: 
@@ -22,12 +22,14 @@ DATA_CONFIG:
             }
         TRG_DATASET:
             MAX_SWEEPS: 1
+            BALANCED_RESAMPLING: False
             INFO_PATH: {
                 'train': [top_10_frames_nuscenes_infos_10sweeps_withvelo.pkl],
                 'test': [nuscenes_infos_10sweeps_val_train_0.05_1.pkl],
             }
     TRG_DATASET:
         MAX_SWEEPS: 1
+        BALANCED_RESAMPLING: False
 
 
 MODEL:

@@ -226,6 +226,7 @@ def train_one_epoch_dann(model, optimizer, train_loader, model_func, lr_schedule
             trg_mgfa_feats = [f.clone() for f in trg_disp_dict['mgfa_feats']]
             disp_dict.pop('mgfa_feats')
             trg_disp_dict.pop('mgfa_feats')
+            mgfa_loss = 0.
             for idx in range(len(src_mgfa_feats)):
                 if mgfa_loss_func == 'MMD':
                     loss_mgfa_i = mmd.mix_rbf_mmd2(src_mgfa_feats[idx].detach(), 
@@ -243,8 +244,10 @@ def train_one_epoch_dann(model, optimizer, train_loader, model_func, lr_schedule
                 else:
                     NotImplementedError('not implemented mgfa loss')
                 trg_d_loss = trg_d_loss + loss_mgfa_i * mgfa_loss_weight
+                mgfa_loss += (loss_mgfa_i * mgfa_loss_weight).item()
             trg_d_loss.backward()
             clip_grad_norm_(model.parameters(), optim_cfg.GRAD_NORM_CLIP)
+            tb_dict['mgfa_loss'] = mgfa_loss
             optimizer.step()
 
         accumulated_iter += 1

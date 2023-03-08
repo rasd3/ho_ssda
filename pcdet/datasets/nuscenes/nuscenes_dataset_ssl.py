@@ -823,6 +823,66 @@ class NuScenesDatasetSSLSE(NuScenesDatasetSSL):
             return data_dict_list
 
         if not self.training:
+            info = copy.deepcopy(self.labeled_infos[index])
+            points = self.get_lidar_with_sweeps(
+                info, max_sweeps=self.dataset_cfg.MAX_SWEEPS)
+            if self.shift_coor:
+                points[:, :3] += np.array(self.shift_coor, dtype=np.float32)
+
+            input_dict = {
+                'points': points,
+                'frame_id': Path(info['lidar_path']).stem,
+                'metadata': {
+                    'token': info['token']
+                }
+            }
+
+            if 'gt_boxes' in info:
+                if self.dataset_cfg.get('FILTER_MIN_POINTS_IN_GT', False):
+                    mask = (info['num_lidar_pts'] >
+                            self.dataset_cfg.FILTER_MIN_POINTS_IN_GT - 1)
+                else:
+                    mask = None
+
+                if self.shift_coor:
+                    info['gt_boxes'][:, :3] += self.shift_coor
+                    input_dict['shift_coor'] = self.shift_coor
+                input_dict.update({
+                    'gt_names':
+                    info['gt_names'] if mask is None else info['gt_names'][mask],
+                    'gt_boxes':
+                    info['gt_boxes'] if mask is None else info['gt_boxes'][mask]
+                })
+
+
+            if self.dataset_cfg.get('FOV_POINTS_ONLY', None):
+                input_dict['points'] = self.extract_fov_data(
+                    input_dict['points'], self.dataset_cfg.FOV_DEGREE,
+                    self.dataset_cfg.FOV_ANGLE)
+                if input_dict['gt_boxes'] is not None:
+                    fov_gt_flag = self.extract_fov_gt(input_dict['gt_boxes'],
+                                                      self.dataset_cfg.FOV_DEGREE,
+                                                      self.dataset_cfg.FOV_ANGLE)
+                    input_dict.update({
+                        'gt_names':
+                        input_dict['gt_names'][fov_gt_flag],
+                        'gt_boxes':
+                        input_dict['gt_boxes'][fov_gt_flag],
+                    })
+
+            data_dict = self.prepare_data(data_dict=input_dict)
+
+            if self.dataset_cfg.get('SET_NAN_VELOCITY_TO_ZEROS', False):
+                gt_boxes = data_dict['gt_boxes']
+                gt_boxes[np.isnan(gt_boxes)] = 0
+                data_dict['gt_boxes'] = gt_boxes
+
+            if not self.dataset_cfg.PRED_VELOCITY and 'gt_boxes' in data_dict:
+                data_dict['gt_boxes'] = data_dict[
+                    'gt_boxes'][:, [0, 1, 2, 3, 4, 5, 6, -1]]
+            if not self.dataset_cfg.PRED_VELOCITY and 'gt_boxes_ema' in data_dict:
+                data_dict['gt_boxes_ema'] = data_dict[
+                    'gt_boxes_ema'][:, [0, 1, 2, 3, 4, 5, 6, -1]]
             return data_dict
 
     @staticmethod
