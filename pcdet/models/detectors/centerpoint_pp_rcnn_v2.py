@@ -95,7 +95,7 @@ class CenterPoint_PointPillar_RCNNV2(Detector3DTemplateV2):
             loss_rcnn, tb_dict = self.roi_head.get_loss(tb_dict)
             loss = loss_rpn + loss_rcnn
 
-        if self.backbone_2d.use_domain_cls:
+        if self.backbone_2d.use_domain_cls or self.backbone_2d.mgfa_domain_cls:
             loss_domain, tb_dict = self.backbone_2d.get_loss(tb_dict)
             loss = loss + loss_domain
 
