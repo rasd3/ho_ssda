@@ -102,7 +102,7 @@ class BaseBEVBackbone(nn.Module):
                                                  False)
         self.dc_version = self.model_cfg.get('DC_VERSION', None)
         self.mgfa = self.model_cfg.get('MGFA', False)
-        self.mgfa_domain_cls = self.model_cfg.get('MGFA_DOMAIN_CLASSIFIER', False)
+        self.mgfa_use_domain_cls = self.model_cfg.get('MGFA_DOMAIN_CLASSIFIER', False)
         if self.use_domain_cls:
             self.domain_data_split = False
             self.domain_data_trg = False
@@ -128,15 +128,18 @@ class BaseBEVBackbone(nn.Module):
                                       nn.ReLU(),
                                       nn.Linear(ch*2, ch))
                 self.mgfa_proj.append(m_seq.cuda())
-        if self.mgfa_domain_cls:
+        if self.mgfa_use_domain_cls:
             self.mgfa_dc_version = self.model_cfg.get('MGFA_DC_VERSION', None)
             self.mgfa_domain_loss_cfg = self.model_cfg.get('MGFA_LOSS_CONFIG', None)
-            self.mgfa_domain_cls = dc_model_dict[self.mgfa_dc_version]()
+            self.mgfa_domain_cls = []
+            for ch in ch_in:
+                self.mgfa_domain_cls.append(dc_model_dict[self.mgfa_dc_version](ch))
+            self.mgfa_domain_cls = nn.ModuleList(self.mgfa_domain_cls)
             self.forward_ret_dict = {}
-            if self.domain_loss_cfg.LOSS_DC == 'NLL':
-                self.domain_cls_loss = torch.nn.NLLLoss().cuda()
-            elif self.domain_loss_cfg.LOSS_DC == 'BCE':
-                self.domain_cls_loss = F.binary_cross_entropy_with_logits
+            if self.mgfa_domain_loss_cfg.LOSS_DC == 'NLL':
+                self.mgfa_domain_cls_loss = torch.nn.NLLLoss().cuda()
+            elif self.mgfa_domain_loss_cfg.LOSS_DC == 'BCE':
+                self.mgfa_domain_cls_loss = F.binary_cross_entropy_with_logits
             else:
                 raise NotImplementedError('specify implemented loss name')
 
@@ -145,6 +148,7 @@ class BaseBEVBackbone(nn.Module):
         batch_size = self.batch_size
         tb_dict = {} if tb_dict is None else tb_dict
         domain_loss = torch.tensor(0.).cuda()
+        breakpoint()
         if self.use_domain_cls:
             domain_output = self.forward_ret_dict['domain_output']
             trg_idx = torch.tensor([i*2+1 for i in range(batch_size // 2)])
@@ -163,13 +167,22 @@ class BaseBEVBackbone(nn.Module):
             domain_cls_loss = self.domain_cls_loss(domain_output, domain_label)
             domain_cls_loss *= dc_loss_weight
             domain_loss = domain_loss + domain_cls_loss
-        if self.mgfa_domain_cls:
+        if self.mgfa_use_domain_cls:
+            num_scale = len(self.mgfa_domain_cls)
             domain_output = self.forward_ret_dict['mgfa_domain_output']
-            for b in range(batch_size):
-                domain_label[b].fill_(self.forward_ret_dict['domain_target'][b])
+            mgfa_dc_loss_weight = self.mgfa_domain_loss_cfg.LOSS_WEIGHTS.dc_weight
+            if 'POOL' in self.mgfa_dc_version:
+                domain_label = torch.zeros(batch_size, dtype=torch.long).cuda()
+            elif 'CONV' in self.mgfa_dc_version:
+                domain_label = torch.FloatTensor(domain_output.shape).cuda()
+            for idx in range(num_scale):
+                for b in range(batch_size):
+                    domain_label[b].fill_(self.forward_ret_dict['mgfa_domain_target'][b])
+                mgfa_domain_cls_loss = self.mgfa_domain_cls_loss(domain_output[idx], domain_label)
+                domain_loss = domain_loss + mgfa_domain_cls_loss * mgfa_dc_loss_weight
 
-        tb_dict['domain_cls_loss'] = domain_cls_loss.item()
-        return domain_cls_loss, tb_dict
+        tb_dict['domain_cls_loss'] = domain_loss.item()
+        return domain_loss, tb_dict
 
     def remove_trg_data(self, data_dict):
         batch_size = data_dict['batch_size']
@@ -255,6 +268,11 @@ class BaseBEVBackbone(nn.Module):
             feat_names = ['spatial_features_1x', 'spatial_features_2x', 'spatial_features_2d']
             mgfa_proj_feats = []
             mgfa_domain_output = []
+            iter_meta = data_dict['cur_train_meta']
+            p = float(
+                i + iter_meta['cur_epoch'] * iter_meta['total_it_each_epoch']
+            ) / iter_meta['total_epochs'] / iter_meta['total_it_each_epoch']
+            alpha = 2. / (1. + np.exp(-10 * p)) - 1
             for idx, feat_name in enumerate(feat_names):
                 if idx in self.mgfa_feats_scale:
                     mgfa_feat = ret_dict[feat_name]
@@ -262,18 +280,13 @@ class BaseBEVBackbone(nn.Module):
                     mgfa_feat = self.mgfa_pool[idx](mgfa_feat).view(mgfa_feat.size(0), -1)
                     mgfa_feat = self.mgfa_proj[idx](mgfa_feat)
                     mgfa_proj_feats.append(mgfa_feat)
-                    if self.mgfa_domain_cls:
-                        iter_meta = data_dict['cur_train_meta']
-                        p = float(
-                            i + iter_meta['cur_epoch'] * iter_meta['total_it_each_epoch']
-                        ) / iter_meta['total_epochs'] / iter_meta['total_it_each_epoch']
-                        alpha = 2. / (1. + np.exp(-10 * p)) - 1
-                        mgfa_domain_out = self.mgfa_domain_cls(mgfa_feat_cl, alpha)
+                    if self.mgfa_use_domain_cls:
+                        mgfa_domain_out = self.mgfa_domain_cls[idx](mgfa_feat_cl, alpha)
                         mgfa_domain_output.append(mgfa_domain_out)
 
             data_dict['mgfa_feats'] = mgfa_proj_feats
-            if self.mgfa_domain_cls:
-                self.forward_ret_dict['domain_output'] = mgfa_domain_out
-                self.forward_ret_dict['domain_target'] = data_dict['domain']
+            if self.mgfa_use_domain_cls:
+                self.forward_ret_dict['mgfa_domain_output'] = mgfa_domain_output
+                self.forward_ret_dict['mgfa_domain_target'] = data_dict['domain']
 
         return data_dict

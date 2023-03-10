@@ -35,11 +35,11 @@ class pool_1(nn.Module):
     ''' Follow DANN github
     '''
 
-    def __init__(self):
+    def __init__(self, input_channel=512):
         super().__init__()
 
         layers = nn.Sequential()
-        layers.add_module('d_fc1', nn.Linear(512, 128))
+        layers.add_module('d_fc1', nn.Linear(input_channel, 128))
         layers.add_module('d_bn1', nn.BatchNorm1d(128))
         layers.add_module('d_relu1', nn.ReLU(False))
         layers.add_module('d_fc2', nn.Linear(128, 2))
@@ -59,11 +59,11 @@ class pool_1_cp(nn.Module):
     ''' Follow DANN github
     '''
 
-    def __init__(self):
+    def __init__(self, input_channel=384):
         super().__init__()
 
         layers = nn.Sequential()
-        layers.add_module('d_fc1', nn.Linear(384, 128))
+        layers.add_module('d_fc1', nn.Linear(input_channel, 128))
         layers.add_module('d_bn1', nn.BatchNorm1d(128))
         layers.add_module('d_relu1', nn.ReLU(False))
         layers.add_module('d_fc2', nn.Linear(128, 2))
