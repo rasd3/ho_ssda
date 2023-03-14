@@ -22,7 +22,7 @@ from typing import Optional, Tuple, Dict, Any
 from nuscenes import NuScenes
 
 class KittiDataset(DatasetTemplate):
-    def __init__(self, dataset_cfg, training=True, root_path=None, logger=None):
+    def __init__(self, dataset_cfg, class_names=None, training=True, root_path=None, logger=None):
         """
         Args:
             root_path:

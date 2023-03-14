@@ -148,7 +148,6 @@ class BaseBEVBackbone(nn.Module):
         batch_size = self.batch_size
         tb_dict = {} if tb_dict is None else tb_dict
         domain_loss = torch.tensor(0.).cuda()
-        breakpoint()
         if self.use_domain_cls:
             domain_output = self.forward_ret_dict['domain_output']
             trg_idx = torch.tensor([i*2+1 for i in range(batch_size // 2)])
