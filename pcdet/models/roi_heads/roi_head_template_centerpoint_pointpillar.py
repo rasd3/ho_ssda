@@ -266,11 +266,16 @@ class RoIHeadTemplate_CenterPoint_PointPillar(nn.Module):
         else:
             raise NotImplementedError
 
-        rcnn_loss_cls = rcnn_loss_cls * loss_cfgs.LOSS_WEIGHTS['rcnn_cls_weight']
-        tb_dict = {
-            'rcnn_loss_cls': rcnn_loss_cls.item() if scalar else rcnn_loss_cls,
-            'rcnn_acc_cls': rcnn_acc_cls.item() if scalar else rcnn_acc_cls
-        }
+        try:
+            rcnn_loss_cls = rcnn_loss_cls * loss_cfgs.LOSS_WEIGHTS['rcnn_cls_weight']
+            tb_dict = {
+                'rcnn_loss_cls': rcnn_loss_cls.item() if scalar else rcnn_loss_cls,
+                'rcnn_acc_cls': rcnn_acc_cls.item() if scalar else rcnn_acc_cls
+            }
+        except:
+            print(scalar)
+            print(rcnn_loss_cls)
+            print(rcnn_acc_cls)
         return rcnn_loss_cls, tb_dict
 
     def get_loss(self, tb_dict=None, scalar=True):

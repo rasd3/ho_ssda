@@ -152,6 +152,7 @@ class DataBaseSampler(object):
         if 'shift_coor' in data_dict:
             obj_points[:, :3] += data_dict['shift_coor']
             sampled_gt_boxes[:, :3] += data_dict['shift_coor']
+            abcd = 1
         sampled_gt_names = np.array([x['name'] for x in total_valid_sampled_dict])
 
         large_sampled_gt_boxes = box_utils.enlarge_box3d(

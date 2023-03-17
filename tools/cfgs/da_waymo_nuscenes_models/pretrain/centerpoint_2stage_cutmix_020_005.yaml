@@ -1,72 +1,45 @@
-# CLASS_NAMES: ['car', 'pedestrian', 'bicycle']
 CLASS_NAMES: ['car']
 
 DATA_CONFIG:
-    _BASE_CONFIG_: cfgs/dataset_configs/nuscenes_dataset.yaml
-    # CLASS_NAMES: ['car', 'pedestrian', 'bicycle']
-    CLASS_NAMES: ['car']
+    _BASE_CONFIG_: cfgs/dataset_configs/da_waymo_nuscenes_cutmix.yaml
+
     POINT_CLOUD_RANGE: [-54.0, -54.0, -5.0, 54.0, 54.0, 4.8]
-    SHIFT_COOR: [0.0, 0.0, 1.8]
+    NuScenesDataset:
+        INFO_PATH: {
+            'train': [top_5_percent_frames_nuscenes_infos_10sweeps_train.pkl],
+            'test': [nuscenes_infos_10sweeps_val.pkl],
+        }
+        DATA_AUGMENTOR:
+            DISABLE_AUG_LIST: ['placeholder']
+            AUG_CONFIG_LIST:
+                - NAME: gt_sampling
+                  SHIFT_COOR: [0.0, 0.0, 1.8]
+                  DB_INFO_PATH:
+                    # - nuscenes_dbinfos_10sweeps_withvelo.pkl
+                    - top_5_percent_frames_nuscenes_dbinfos_10sweeps_withvelo.pkl
+                  PREPARE: {
+                    filter_by_min_points: [
+                        'car:5'
+                    ],
+                  }
 
-    INFO_PATH: {
-        'train': [nuscenes_infos_10sweeps_train_train_0.10_1.pkl],
-        'test': [nuscenes_infos_10sweeps_val.pkl],
-    }
-    REPEAT: 1
-    MAX_SWEEPS: 1
-    PRED_VELOCITY: False
+                  SAMPLE_GROUPS: [
+                    'car:2'
+                  ]
 
-    DATA_AUGMENTOR:
-        DISABLE_AUG_LIST: ['placeholder']
-        AUG_CONFIG_LIST:
-            - NAME: gt_sampling
-              DB_INFO_PATH:
-                - nuscenes_dbinfos_10sweeps_train_0.10_1.pkl
-              PREPARE: {
-                filter_by_min_points: [
-                    'car:5','truck:5', 'construction_vehicle:5', 'bus:5', 'trailer:5',
-                    'barrier:5', 'motorcycle:5', 'bicycle:5', 'pedestrian:5', 'traffic_cone:5'
-                ],
-              }
+                  NUM_POINT_FEATURES: 5
+                  DATABASE_WITH_FAKELIDAR: False
+                  REMOVE_EXTRA_WIDTH: [0.0, 0.0, 0.0]
+                  LIMIT_WHOLE_SCENE: True
 
-              SAMPLE_GROUPS: [
-                'car:2','truck:3', 'construction_vehicle:7', 'bus:4', 'trailer:6',
-                'barrier:2', 'motorcycle:6', 'bicycle:6', 'pedestrian:2', 'traffic_cone:2'
-              ]
+                - NAME: random_world_flip
+                  ALONG_AXIS_LIST: ['x', 'y']
 
-              NUM_POINT_FEATURES: 5
-              DATABASE_WITH_FAKELIDAR: False
-              REMOVE_EXTRA_WIDTH: [0.0, 0.0, 0.0]
-              LIMIT_WHOLE_SCENE: True
+                - NAME: random_world_rotation
+                  WORLD_ROT_ANGLE: [-0.78539816, 0.78539816]
 
-            - NAME: random_world_flip
-              ALONG_AXIS_LIST: ['x', 'y']
-
-            - NAME: random_world_rotation
-              WORLD_ROT_ANGLE: [-0.78539816, 0.78539816]
-
-            - NAME: random_world_scaling
-              WORLD_SCALE_RANGE: [0.9, 1.1]
-
-
-    DATA_PROCESSOR:
-        - NAME: mask_points_and_boxes_outside_range
-          REMOVE_OUTSIDE_BOXES: True
-
-        - NAME: shuffle_points
-          SHUFFLE_ENABLED: {
-            'train': True,
-            'test': True
-          }
-
-        - NAME: transform_points_to_voxels
-          VOXEL_SIZE: [0.075, 0.075, 0.2]
-          MAX_POINTS_PER_VOXEL: 10
-          MAX_NUMBER_OF_VOXELS: {
-            'train': 120000,
-            'test': 160000
-          }
-
+                - NAME: random_world_scaling
+                  WORLD_SCALE_RANGE: [0.9, 1.1]
 
 MODEL:
     NAME: CenterPoint_PointPillar_RCNNV2 #CenterPointRCNN # CenterPoint_PointPillar_RCNN  #PillarNet
@@ -108,8 +81,8 @@ MODEL:
         LOSS_CONFIG:
             LOSS_WEIGHTS: {
                 'cls_weight': 1.0,
-                'loc_weight': 2.0,
-                'code_weights': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+                'loc_weight': 0.25,
+                'code_weights': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.2, 0.2]
             }
 
     Second_Stage:
@@ -179,10 +152,10 @@ MODEL:
         SCORE_THRESH: 0.1
         OUTPUT_RAW_SCORE: False
 
-        EVAL_METRIC: nuscenes
+        EVAL_METRIC: waymo
 
         NMS_CONFIG:
-            MULTI_CLASSES_NMS: True
+            MULTI_CLASSES_NMS: False
             NMS_TYPE: nms_gpu
             NMS_THRESH: 0.2
             NMS_PRE_MAXSIZE: 1000
@@ -197,8 +170,8 @@ MODEL:
 
 
 OPTIMIZATION:
-    BATCH_SIZE_PER_GPU: 4 #sever : 10 #conv 8
-    EVAL_BATCH_SIZE_PER_GPU: 8 #sever : 10 #conv 8
+    BATCH_SIZE_PER_GPU: 8
+    EVAL_BATCH_SIZE_PER_GPU: 8 #sever : 10
     NUM_EPOCHS: 20
 
     OPTIMIZER: adam_onecycle

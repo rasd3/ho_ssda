@@ -3,6 +3,8 @@ from .detector3d_template_v2 import Detector3DTemplateV2
 import numpy as np
 import torch
 
+from pcdet.utils.simplevis import nuscene_vis
+
 class CenterPoint_PointPillar_RCNNV2(Detector3DTemplateV2):
     def __init__(self, model_cfg, num_class, dataset):
         super().__init__(model_cfg=model_cfg, num_class=num_class, dataset=dataset)
@@ -50,6 +52,17 @@ class CenterPoint_PointPillar_RCNNV2(Detector3DTemplateV2):
 #
             #  return pred_dicts, recall_dicts
     def forward(self, batch_dict):
+        if False:
+            import cv2
+            b_size = batch_dict['gt_boxes'].shape[0]
+            for b in range(b_size):
+                points = batch_dict['points'][batch_dict['points'][:, 0] ==
+                                              b][:, 1:4].cpu().numpy()
+                gt_boxes = batch_dict['gt_boxes'][b].cpu().numpy().copy()
+                gt_boxes[:, 6] = -gt_boxes[:, 6]
+                det = nuscene_vis(points, gt_boxes)
+                cv2.imwrite('test_%02d.png' % b, det)
+            breakpoint()
         batch_dict['spatial_features_stride'] = 1
         only_domain_loss = batch_dict.get('domain_target', False)
         for idx, cur_module in enumerate(self.module_list):
@@ -95,7 +108,7 @@ class CenterPoint_PointPillar_RCNNV2(Detector3DTemplateV2):
             loss_rcnn, tb_dict = self.roi_head.get_loss(tb_dict)
             loss = loss_rpn + loss_rcnn
 
-        if self.backbone_2d.use_domain_cls or self.backbone_2d.mgfa_domain_cls:
+        if self.backbone_2d.use_domain_cls or self.backbone_2d.mgfa_use_domain_cls:
             loss_domain, tb_dict = self.backbone_2d.get_loss(tb_dict)
             loss = loss + loss_domain
 

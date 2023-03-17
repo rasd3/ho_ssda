@@ -15,6 +15,9 @@ from .omega.omega_dataset import OmegaDataset
 from .omega.omega_dataset_ssl import OmegaDatasetSSL
 from .da.da_dataset_ssda import DADatasetSSDA, DADatasetDANN, DADatasetCO
 
+from .cutmix_dataset.two_dataset import CutMixDatasetTemplate
+from .cutmix_dataset.waymo_nus_cutmix_dataset import WaymoNusCutMixDataset
+
 __all__ = {
     'DatasetTemplate': DatasetTemplate,
     'KittiDataset': KittiDataset,
@@ -29,6 +32,8 @@ __all__ = {
     'DADatasetSSDA': DADatasetSSDA,
     'DADatasetDANN': DADatasetDANN,
     'DADatasetCO': DADatasetCO,
+    'CutMixDatasetTemplate': CutMixDatasetTemplate, 
+    'WaymoNusCutMixDataset': WaymoNusCutMixDataset, 
 }
 
 
