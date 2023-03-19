@@ -5,10 +5,10 @@ import copy
 from pathlib import Path
 
 from pcdet.datasets import CutMixDatasetTemplate
-from pcdet.utils import box_utils
+from pcdet.utils import ssda3d_box_utils as box_utils
 
 from ...ops.roiaware_pool3d import roiaware_pool3d_utils
-from ...utils import common_utils
+from ...utils import ssda3d_common_utils as common_utils
 
 class WaymoNusCutMixDataset(CutMixDatasetTemplate):
     def __init__(self, dataset_cfg=None, class_names=None, root_path=None, training=True, dataset_names=None, logger=None):
@@ -220,6 +220,8 @@ class WaymoNusCutMixDataset(CutMixDatasetTemplate):
                 waymo_input_dict['metadata'] = waymo_info.get('metadata', waymo_info['frame_id'])
                 waymo_input_dict.pop('num_points_in_gt', None)
 
+            waymo_input_dict['frame_id'] = waymo_input_dict['frame_id'] + 'cutmix'
+            nus_input_dict['frame_id'] = nus_input_dict['frame_id'] + 'cutmix'
             data_dict = self.prepare_data(waymo_input_dict, nus_input_dict)
 
             # if len(data_dict_list) != 2:

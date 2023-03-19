@@ -11,7 +11,8 @@ DATA_SPLIT: {
 
 POINT_FEATURE_ENCODING: {
     encoding_type: absolute_coordinates_encoding,
-    used_feature_list: ['x', 'y', 'z'],
+    used_feature_list: ['x', 'y', 'z', 'intensity'],
+    normalize_intensity: True,
     src_feature_list: ['x', 'y', 'z', 'intensity', 'timestamp'],
 }
 

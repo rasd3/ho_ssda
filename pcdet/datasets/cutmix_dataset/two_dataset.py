@@ -5,10 +5,10 @@ import numpy as np
 import torch
 import torch.utils.data as torch_data
 
-from pcdet.utils import common_utils
-from ..augmentor.data_augmentor import DataAugmentor
-from ..processor.data_processor import DataProcessor
-from ..processor.point_feature_encoder import PointFeatureEncoder
+from pcdet.utils import ssda3d_common_utils as common_utils
+from ..augmentor.ssda3d_data_augmentor import DataAugmentor
+from ..processor.ssda3d_data_processor import DataProcessor
+from ..processor.ssda3d_point_feature_encoder import PointFeatureEncoder
 from ..processor.inter_domain_point_cutmix import inter_domain_point_cutmix
 # from .processor.random_patch_replacement import random_patch_replacement
 # from .processor.point_mixup import pc_mixup
