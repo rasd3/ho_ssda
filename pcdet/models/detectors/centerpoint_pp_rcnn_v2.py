@@ -52,7 +52,6 @@ class CenterPoint_PointPillar_RCNNV2(Detector3DTemplateV2):
 #
             #  return pred_dicts, recall_dicts
     def forward(self, batch_dict):
-        breakpoint()
         if False:
             import cv2
             b_size = batch_dict['gt_boxes'].shape[0]
