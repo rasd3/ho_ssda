@@ -42,6 +42,8 @@ class PointFeatureEncoder(object):
             if x in ['x', 'y', 'z']:
                 continue
             idx = self.src_feature_list.index(x)
+            if x == 'intensity' and self.point_encoding_config.get('normalize_intensity', None):
+                points[:, idx:idx+1] = points[:, idx:idx+1] / max(points[:, idx:idx+1])
             point_feature_list.append(points[:, idx:idx+1])
         point_features = np.concatenate(point_feature_list, axis=1)
         return point_features, True

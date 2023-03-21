@@ -12,6 +12,12 @@ DATA_CONFIG:
         'train': [nuscenes_infos_10sweeps_train_train_0.10_1.pkl],
         'test': [nuscenes_infos_10sweeps_val.pkl],
     }
+    POINT_FEATURE_ENCODING: {
+        encoding_type: absolute_coordinates_encoding,
+        used_feature_list: ['x', 'y', 'z', 'intensity'],
+        normalize_intensity: True,
+        src_feature_list: ['x', 'y', 'z', 'intensity', 'timestamp'],
+    }
     REPEAT: 1
     MAX_SWEEPS: 1
     PRED_VELOCITY: False
