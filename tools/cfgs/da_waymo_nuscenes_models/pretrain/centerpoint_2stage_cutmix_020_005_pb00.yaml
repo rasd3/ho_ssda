@@ -5,6 +5,7 @@ DATA_CONFIG:
 
     CUTMIX_PROB: 0.0
     POINT_CLOUD_RANGE: [-54.0, -54.0, -5.0, 54.0, 54.0, 4.8]
+    BALANCED_RESAMPLING: False 
     NuScenesDataset:
         INFO_PATH: {
             'train': [top_5_percent_frames_nuscenes_infos_10sweeps_train.pkl],

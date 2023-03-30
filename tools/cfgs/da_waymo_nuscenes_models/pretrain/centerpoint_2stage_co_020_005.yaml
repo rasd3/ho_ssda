@@ -50,8 +50,8 @@ MODEL:
         LOSS_CONFIG:
             LOSS_WEIGHTS: {
                 'cls_weight': 1.0,
-                'loc_weight': 2.0,
-                'code_weights': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+                'loc_weight': 0.25,
+                'code_weights': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.2, 0.2]
             }
 
     Second_Stage:
@@ -121,7 +121,7 @@ MODEL:
         SCORE_THRESH: 0.1
         OUTPUT_RAW_SCORE: False
 
-        EVAL_METRIC: waymo
+        EVAL_METRIC: nuscenes
 
         NMS_CONFIG:
             MULTI_CLASSES_NMS: False
@@ -139,8 +139,8 @@ MODEL:
 
 
 OPTIMIZATION:
-    BATCH_SIZE_PER_GPU: 8
-    EVAL_BATCH_SIZE_PER_GPU: 8 #sever : 10
+    BATCH_SIZE_PER_GPU: 4
+    EVAL_BATCH_SIZE_PER_GPU: 4 #sever : 10
     NUM_EPOCHS: 20
 
     OPTIMIZER: adam_onecycle

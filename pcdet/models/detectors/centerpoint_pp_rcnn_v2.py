@@ -61,8 +61,7 @@ class CenterPoint_PointPillar_RCNNV2(Detector3DTemplateV2):
                 gt_boxes = batch_dict['gt_boxes'][b].cpu().numpy().copy()
                 gt_boxes[:, 6] = -gt_boxes[:, 6]
                 det = nuscene_vis(points, gt_boxes)
-                cv2.imwrite('test_%02d.png' % b, det)
-            breakpoint()
+                cv2.imwrite('test_gt_%02d.png' % b, det)
         batch_dict['spatial_features_stride'] = 1
         only_domain_loss = batch_dict.get('domain_target', False)
         for idx, cur_module in enumerate(self.module_list):
@@ -80,6 +79,19 @@ class CenterPoint_PointPillar_RCNNV2(Detector3DTemplateV2):
             batch_dict = cur_module(batch_dict)
 
         if self.training:
+            if False:
+                import cv2
+                b_size = batch_dict['gt_boxes'].shape[0]
+                for b in range(b_size):
+                    points = batch_dict['points'][batch_dict['points'][:, 0] ==
+                                                  b][:, 1:4].cpu().numpy()
+                    pred_boxes = pred_dicts[b]['pred_boxes'].detach().cpu().numpy().copy()
+                    pred_mask = (pred_dicts[b]['pred_scores'] > 0.2).detach().cpu().numpy().copy()
+                    pred_boxes = pred_boxes[pred_mask]
+                    pred_boxes[:, 6] = -pred_boxes[:, 6]
+                    det = nuscene_vis(points, pred_boxes)
+                    cv2.imwrite('test_pred_%02d.png' % b, det)
+                breakpoint()
             loss, tb_dict, disp_dict = self.get_training_loss(only_domain_loss)
 
             ret_dict = {
@@ -89,6 +101,19 @@ class CenterPoint_PointPillar_RCNNV2(Detector3DTemplateV2):
                 disp_dict['mgfa_feats'] = batch_dict['mgfa_feats']
             return ret_dict, tb_dict, disp_dict
         else:
+            if False:
+                import cv2
+                b_size = batch_dict['gt_boxes'].shape[0]
+                for b in range(b_size):
+                    points = batch_dict['points'][batch_dict['points'][:, 0] ==
+                                                  b][:, 1:4].cpu().numpy()
+                    pred_boxes = pred_dicts[b]['pred_boxes'].cpu().numpy().copy()
+                    pred_mask = (pred_dicts[b]['pred_scores'] > 0.2).cpu().numpy().copy()
+                    pred_boxes = pred_boxes[pred_mask]
+                    pred_boxes[:, 6] = -pred_boxes[:, 6]
+                    det = nuscene_vis(points, pred_boxes)
+                    cv2.imwrite('test_pred_%02d.png' % b, det)
+                breakpoint()
             if False:
                 pred_dicts = self.post_process(batch_dict)
                 rois, roi_scores, roi_labels = self.reorder_rois_for_refining(batch_dict['batch_size'], pred_dicts)

@@ -1,7 +1,7 @@
 DATASET: 'WaymoNusCutMixDataset'
 CLASS_NAMES: ['car']
 MIX_TYPE: cutmix
-CUTMIX_PROB: 0.3
+CUTMIX_PROB: 0.6
 POINT_CLOUD_RANGE: [-54.0, -54.0, -5.0, 54.0, 54.0, 4.8]
 
 DATA_SPLIT: {

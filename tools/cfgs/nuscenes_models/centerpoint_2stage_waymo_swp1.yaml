@@ -1,15 +1,14 @@
-# CLASS_NAMES: ['car', 'pedestrian', 'bicycle']
 CLASS_NAMES: ['car']
 
 DATA_CONFIG:
     _BASE_CONFIG_: cfgs/dataset_configs/nuscenes_dataset.yaml
-    # CLASS_NAMES: ['car', 'pedestrian', 'bicycle']
     CLASS_NAMES: ['car']
     POINT_CLOUD_RANGE: [-54.0, -54.0, -5.0, 54.0, 54.0, 4.8]
+    # POINT_CLOUD_RANGE: [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
     SHIFT_COOR: [0.0, 0.0, 1.8]
 
     INFO_PATH: {
-        'train': [nuscenes_infos_10sweeps_train_train_0.10_1.pkl],
+        'train': [top_5_percent_frames_nuscenes_infos_10sweeps_train.pkl],
         'test': [nuscenes_infos_10sweeps_val.pkl],
     }
     POINT_FEATURE_ENCODING: {
@@ -23,11 +22,11 @@ DATA_CONFIG:
     PRED_VELOCITY: False
 
     DATA_AUGMENTOR:
-        DISABLE_AUG_LIST: ['placeholder']
+        DISABLE_AUG_LIST: ['placeholder', 'random_world_flip', 'random_world_rotation', 'random_world_scaling']
         AUG_CONFIG_LIST:
             - NAME: gt_sampling
               DB_INFO_PATH:
-                - nuscenes_dbinfos_10sweeps_train_0.10_1.pkl
+                - top_5_percent_frames_nuscenes_dbinfos_10sweeps_withvelo.pkl
               PREPARE: {
                 filter_by_min_points: [
                     'car:5','truck:5', 'construction_vehicle:5', 'bus:5', 'trailer:5',
@@ -203,7 +202,7 @@ MODEL:
 
 
 OPTIMIZATION:
-    BATCH_SIZE_PER_GPU: 4 #sever : 10 #conv 8
+    BATCH_SIZE_PER_GPU: 8 #sever : 10 #conv 8
     EVAL_BATCH_SIZE_PER_GPU: 8 #sever : 10 #conv 8
     NUM_EPOCHS: 20
 

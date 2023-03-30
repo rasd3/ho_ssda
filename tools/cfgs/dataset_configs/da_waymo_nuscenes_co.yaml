@@ -10,7 +10,7 @@ SRC_DATASET:
     _BASE_CONFIG_: cfgs/dataset_configs/waymo_dataset.yaml
     CLASS_NAMES: ['Vehicle', 'Pedestrian', 'Cyclist']
     SAMPLED_INTERVAL: {
-        'train': 1,
+        'train': 5,
         'test': 1
     }
     POINT_CLOUD_RANGE: [-54.0, -54.0, -5.0, 54.0, 54.0, 4.8]
@@ -51,9 +51,9 @@ TRG_DATASET:
     SHIFT_COOR: [0.0, 0.0, 1.8]
     POINT_CLOUD_RANGE: [-54.0, -54.0, -5.0, 54.0, 54.0, 4.8]
     REPEAT: 1
-    MAX_SWEEPS: 10
+    MAX_SWEEPS: 1
     PRED_VELOCITY: False
-    BALANCED_RESAMPLING: True
+    BALANCED_RESAMPLING: False
     POINT_FEATURE_ENCODING: {
         encoding_type: absolute_coordinates_encoding,
         used_feature_list: ['x', 'y', 'z'],
